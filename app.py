@@ -3,30 +3,25 @@ from weather import get_weather, REGIONS
 from dotenv import load_dotenv
 from groq import Groq
 import os
+import traceback
 
 
 # =========================================================
-# 기본 설정
+# 환경변수
 # =========================================================
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-ENV_FILE = os.path.join(BASE_DIR, ".env")
+# 로컬에서는 .env 사용
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 
-load_dotenv(ENV_FILE)
-
-
-# =========================================================
-# Groq API 설정
-# =========================================================
-
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 if GROQ_API_KEY:
-    print("✅ Groq API 키를 불러왔습니다.")
+    print("✅ GROQ_API_KEY 확인됨")
     client = Groq(api_key=GROQ_API_KEY)
 else:
-    print("❌ GROQ_API_KEY를 찾지 못했습니다.")
+    print("❌ GROQ_API_KEY 없음")
     client = None
 
 
@@ -38,12 +33,11 @@ app = Flask(__name__)
 
 
 # =========================================================
-# 메인 페이지
+# 메인
 # =========================================================
 
 @app.route("/")
 def home():
-
     return render_template(
         "index.html",
         regions=list(REGIONS.keys())
@@ -51,7 +45,7 @@ def home():
 
 
 # =========================================================
-# 날씨 API
+# 날씨
 # =========================================================
 
 @app.route("/api/weather")
@@ -60,7 +54,6 @@ def weather_api():
     region = request.args.get("region", "수원")
 
     try:
-
         weather = get_weather(region)
 
         return jsonify({
@@ -70,14 +63,17 @@ def weather_api():
 
     except Exception as e:
 
+        print("❌ 날씨 API 오류:")
+        traceback.print_exc()
+
         return jsonify({
             "ok": False,
-            "error": str(e)
+            "error": f"날씨 정보를 가져오지 못했습니다: {str(e)}"
         }), 500
 
 
 # =========================================================
-# Groq 코디 추천
+# 코디 추천
 # =========================================================
 
 @app.route("/api/outfit")
@@ -85,59 +81,66 @@ def outfit_api():
 
     region = request.args.get("region", "수원")
 
+    print(f"👕 코디 요청: {region}")
+
+    # -----------------------------------------------------
+    # 1. Groq 키 확인
+    # -----------------------------------------------------
+
+    if not GROQ_API_KEY or client is None:
+
+        print("❌ GROQ_API_KEY가 없습니다.")
+
+        return jsonify({
+            "ok": False,
+            "error": "GROQ_API_KEY가 Vercel에 설정되지 않았습니다."
+        }), 500
+
+
+    # -----------------------------------------------------
+    # 2. 날씨 가져오기
+    # -----------------------------------------------------
+
     try:
 
-        # API 키 확인
-        if client is None:
+        print("🌤 날씨 가져오는 중...")
 
-            return jsonify({
-                "ok": False,
-                "error": "GROQ_API_KEY가 설정되지 않았습니다. Vercel 환경 변수를 확인하세요."
-            }), 500
-
-
-        # 날씨 가져오기
         weather = get_weather(region)
+
+        print("✅ 날씨 가져오기 성공")
 
         today = weather.get("today", {})
 
+    except Exception as e:
 
-        # =================================================
-        # AI에게 전달할 프롬프트
-        # =================================================
+        print("❌ 날씨 가져오기 실패")
+        traceback.print_exc()
 
-        prompt = f"""
+        return jsonify({
+            "ok": False,
+            "error": f"날씨 데이터를 가져오는 중 오류가 발생했습니다: {str(e)}"
+        }), 500
+
+
+    # -----------------------------------------------------
+    # 3. 프롬프트
+    # -----------------------------------------------------
+
+    prompt = f"""
 너는 한국 학생을 위한 날씨 기반 데일리 코디 추천 AI야.
 
-지역:
-{region}
+지역: {region}
 
 오늘 날씨:
 
-날짜:
-{today.get("date", "-")}
-
-날씨 상태:
-{today.get("sky", "-")}
-
-강수:
-{today.get("precipitation", "-")}
-
-최저기온:
-{today.get("min_temp", "-")}°C
-
-최고기온:
-{today.get("max_temp", "-")}°C
-
-강수확률:
-{today.get("max_pop", 0)}%
-
-습도:
-{today.get("min_humidity", "-")}~{today.get("max_humidity", "-")}%
-
-최대풍속:
-{today.get("max_wind", "-")}m/s
-
+날짜: {today.get("date", "-")}
+날씨 상태: {today.get("sky", "-")}
+강수: {today.get("precipitation", "-")}
+최저기온: {today.get("min_temp", "-")}°C
+최고기온: {today.get("max_temp", "-")}°C
+강수확률: {today.get("max_pop", 0)}%
+습도: {today.get("min_humidity", "-")}~{today.get("max_humidity", "-")}%
+최대풍속: {today.get("max_wind", "-")}m/s
 
 위 날씨에 맞는 현실적인 학생용 데일리 코디를 추천해줘.
 
@@ -148,15 +151,15 @@ def outfit_api():
 3. 상의를 구체적으로 추천한다.
 4. 하의를 구체적으로 추천한다.
 5. 신발을 추천한다.
-6. 필요하다면 겉옷을 추천한다.
+6. 필요하면 겉옷을 추천한다.
 7. 비가 올 가능성이 있으면 우산을 언급한다.
 8. 더운 날씨라면 통풍이 좋은 옷을 추천한다.
 9. 추운 날씨라면 보온성을 고려한다.
 10. 바람이 강하면 바람을 고려한다.
-11. 마지막에 추천 이유를 짧게 설명한다.
-12. 한국어로 답변한다.
+11. 추천 이유를 짧게 설명한다.
+12. 반드시 한국어로 답변한다.
 
-반드시 다음 형식으로 답변한다.
+다음 형식으로 답변한다.
 
 👕 상의:
 추천 내용
@@ -178,69 +181,61 @@ def outfit_api():
 """
 
 
-        # =================================================
-        # Groq 호출
-        # =================================================
+    # -----------------------------------------------------
+    # 4. Groq 요청
+    # -----------------------------------------------------
+
+    try:
+
+        print("🤖 Groq 요청 시작...")
 
         response = client.chat.completions.create(
 
             model="openai/gpt-oss-120b",
 
             messages=[
-
                 {
                     "role": "system",
                     "content": (
                         "너는 한국 학생들의 날씨별 "
                         "데일리 코디를 추천하는 AI 스타일 도우미다. "
-                        "현실적이고 편하게 입을 수 있는 코디를 추천한다."
+                        "현실적이고 편하게 입을 수 있는 코디를 추천한다. "
+                        "항상 한국어로 답변한다."
                     )
                 },
-
                 {
                     "role": "user",
                     "content": prompt
                 }
-
             ],
 
             temperature=0.7,
-
             max_tokens=500
         )
 
-
-        # =================================================
-        # 답변 가져오기
-        # =================================================
+        print("✅ Groq 응답 성공")
 
         answer = response.choices[0].message.content
 
-
         return jsonify({
-
             "ok": True,
-
             "recommendation": answer
-
         })
 
 
     except Exception as e:
 
-        print("❌ Groq 오류:", e)
+        print("❌ Groq 요청 실패")
+        traceback.print_exc()
 
         return jsonify({
-
             "ok": False,
-
-            "error": str(e)
-
+            "error": f"Groq AI 오류: {str(e)}"
         }), 500
 
 
 # =========================================================
-# 기존 /api/recommend도 지원
+# 기존 recommend API
 # =========================================================
 
 @app.route("/api/recommend", methods=["POST"])
@@ -250,7 +245,7 @@ def recommend():
 
     try:
 
-        if client is None:
+        if not GROQ_API_KEY or client is None:
 
             return jsonify({
                 "ok": False,
@@ -258,7 +253,7 @@ def recommend():
             }), 500
 
 
-        data = request.get_json() or {}
+        data = request.get_json(silent=True) or {}
 
         region = data.get("region", region)
 
@@ -272,7 +267,6 @@ def recommend():
         else:
 
             weather = get_weather(region)
-
             today = weather.get("today", {})
 
 
@@ -307,52 +301,46 @@ def recommend():
             model="openai/gpt-oss-120b",
 
             messages=[
-
                 {
                     "role": "system",
-                    "content": "학생용 데일리 코디를 추천하는 AI 스타일 도우미야. 너는 무조건적으로 한국어를 사용해야 하며 이외 외국어를 사용하면 안돼"
+                    "content": (
+                        "학생용 데일리 코디를 추천하는 AI 스타일 도우미야. "
+                        "반드시 한국어로 답변해."
+                    )
                 },
-
                 {
                     "role": "user",
                     "content": prompt
                 }
-
             ],
 
             temperature=0.7,
-
             max_tokens=500
         )
 
 
         answer = response.choices[0].message.content
 
-
         return jsonify({
-
             "ok": True,
-
             "answer": answer,
-
             "recommendation": answer
-
         })
 
 
     except Exception as e:
 
+        print("❌ Recommend 오류")
+        traceback.print_exc()
+
         return jsonify({
-
             "ok": False,
-
             "error": str(e)
-
         }), 500
 
 
 # =========================================================
-# 서버 실행
+# 로컬 실행
 # =========================================================
 
 if __name__ == "__main__":
