@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Weather Outfit AI</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+<main class="container">
+
+
+    <!-- 헤더 -->
+
+    <header>
+
+        <p class="eyebrow">
+            WEATHER OUTFIT AI
+        </p>
+
+        <h1>
+            오늘 뭐 입지?
+        </h1>
+
+        <p class="subtitle">
+            날씨를 확인하고 AI에게 코디를 추천받아보세요.
+        </p>
+
+
+        <!-- 지역 선택 -->
+
+        <div class="location-selector">
+
+            📍
+
+            <select id="regionSelect">
+
+                {% for region in regions %}
+
+                <option value="{{ region }}">
+                    {{ region }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+    </header>
+
+
+    <!-- 로딩 -->
+
+    <div
+        id="loading"
+        class="loading"
+    >
+        날씨를 불러오는 중...
+    </div>
+
+
+    <!-- 오류 -->
+
+    <div
+        id="error"
+        class="error hidden"
+    ></div>
+
+
+    <!-- ===================== -->
+    <!-- 오늘 -->
+    <!-- ===================== -->
+
+    <section
+        id="todayCard"
+        class="weather-card hidden"
+    >
+
+        <div class="day-title">
+
+            <span>
+                ☀️ 오늘
+            </span>
+
+            <span id="todayDate"></span>
+
+        </div>
+
+
+        <div class="weather-main">
+
+            <div>
+
+                <h2 id="todaySky">
+                    -
+                </h2>
+
+                <p id="todayPrecipitation">
+                    -
+                </p>
+
+            </div>
+
+
+            <div class="temperature">
+
+                <span id="todayMax">
+                    -
+                </span>°
+
+            </div>
+
+        </div>
+
+
+        <div class="temp-range">
+
+            최저
+
+            <strong id="todayMin">
+                -
+            </strong>°C
+
+            <span>·</span>
+
+            최고
+
+            <strong id="todayMax2">
+                -
+            </strong>°C
+
+        </div>
+
+
+        <div class="stats">
+
+
+            <div class="stat">
+
+                <span>
+                    🌧️ 강수확률
+                </span>
+
+                <strong id="todayPop">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="stat">
+
+                <span>
+                    💧 습도
+                </span>
+
+                <strong id="todayHumidity">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="stat">
+
+                <span>
+                    💨 최대 풍속
+                </span>
+
+                <strong id="todayWind">
+                    -
+                </strong>
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+
+    <!-- ===================== -->
+    <!-- 내일 -->
+    <!-- ===================== -->
+
+    <section
+        id="tomorrowCard"
+        class="weather-card hidden"
+    >
+
+        <div class="day-title">
+
+            <span>
+                🌤️ 내일
+            </span>
+
+            <span id="tomorrowDate"></span>
+
+        </div>
+
+
+        <div class="weather-main">
+
+            <div>
+
+                <h2 id="tomorrowSky">
+                    -
+                </h2>
+
+                <p id="tomorrowPrecipitation">
+                    -
+                </p>
+
+            </div>
+
+
+            <div class="temperature">
+
+                <span id="tomorrowMax">
+                    -
+                </span>°
+
+            </div>
+
+        </div>
+
+
+        <div class="temp-range">
+
+            최저
+
+            <strong id="tomorrowMin">
+                -
+            </strong>°C
+
+            <span>·</span>
+
+            최고
+
+            <strong id="tomorrowMax2">
+                -
+            </strong>°C
+
+        </div>
+
+
+        <div class="stats">
+
+
+            <div class="stat">
+
+                <span>
+                    🌧️ 강수확률
+                </span>
+
+                <strong id="tomorrowPop">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="stat">
+
+                <span>
+                    💧 습도
+                </span>
+
+                <strong id="tomorrowHumidity">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="stat">
+
+                <span>
+                    💨 최대 풍속
+                </span>
+
+                <strong id="tomorrowWind">
+                    -
+                </strong>
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+
+    <!-- ===================== -->
+    <!-- AI 코디 -->
+    <!-- ===================== -->
+
+    <section class="outfit-card">
+
+        <p class="eyebrow">
+            AI OUTFIT
+        </p>
+
+        <h2>
+            👕 AI 코디 추천
+        </h2>
+
+        <p>
+            선택한 지역의 오늘 날씨를 분석해서
+            데일리 코디를 추천해줘요.
+        </p>
+
+
+        <button id="recommendBtn">
+
+            🤖 AI 코디 추천받기
+
+        </button>
+
+
+        <div
+            id="recommendText"
+            class="recommend-text hidden"
+        ></div>
+
+    </section>
+
+
+    <footer>
+
+        <p>
+            Weather data: 기상청 단기예보 API
+        </p>
+
+        <p>
+            AI recommendation: OpenAI API
+        </p>
+
+    </footer>
+
+
+</main>
+
+
+<script
+    src="{{ url_for('static', filename='script.js') }}"
+></script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,422 @@
+* {
+    box-sizing: border-box;
+}
+
+
+body {
+
+    margin: 0;
+
+    font-family:
+        Arial,
+        "Noto Sans KR",
+        sans-serif;
+
+    background: #f4f7fb;
+
+    color: #172033;
+
+}
+
+
+.container {
+
+    width:
+        min(
+            760px,
+            calc(100% - 28px)
+        );
+
+    margin: 0 auto;
+
+    padding:
+        42px 0 60px;
+
+}
+
+
+header {
+
+    margin-bottom: 24px;
+
+}
+
+
+.eyebrow {
+
+    margin:
+        0 0 8px;
+
+    font-size: 12px;
+
+    font-weight: 800;
+
+    letter-spacing: 2px;
+
+    color: #7d8798;
+
+}
+
+
+h1 {
+
+    margin: 0;
+
+    font-size: 38px;
+
+}
+
+
+.subtitle {
+
+    color: #697386;
+
+}
+
+
+.location-selector {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    margin-top: 12px;
+
+    padding: 10px 14px;
+
+    background: white;
+
+    border-radius: 14px;
+
+}
+
+
+select {
+
+    border: 0;
+
+    outline: 0;
+
+    background: transparent;
+
+    font-size: 16px;
+
+    font-weight: 700;
+
+}
+
+
+.loading {
+
+    padding: 30px;
+
+    text-align: center;
+
+}
+
+
+.hidden {
+
+    display: none !important;
+
+}
+
+
+.error {
+
+    margin: 16px 0;
+
+    padding: 16px;
+
+    border-radius: 14px;
+
+    background: #ffe9e9;
+
+    color: #b42318;
+
+    white-space: pre-wrap;
+
+}
+
+
+.weather-card,
+.outfit-card {
+
+    background: white;
+
+    border-radius: 26px;
+
+    padding: 25px;
+
+    margin: 18px 0;
+
+    box-shadow:
+        0 10px 30px
+        rgba(
+            30,
+            50,
+            80,
+            0.06
+        );
+
+}
+
+
+.day-title {
+
+    display: flex;
+
+    justify-content:
+        space-between;
+
+    align-items: center;
+
+    margin-bottom: 20px;
+
+    font-size: 18px;
+
+    font-weight: 800;
+
+}
+
+
+.day-title span:last-child {
+
+    font-size: 13px;
+
+    color: #8a93a3;
+
+}
+
+
+.weather-main {
+
+    display: flex;
+
+    justify-content:
+        space-between;
+
+    align-items: center;
+
+}
+
+
+.weather-main h2 {
+
+    font-size: 28px;
+
+    margin:
+        0 0 8px;
+
+}
+
+
+.weather-main p {
+
+    margin: 0;
+
+    color: #667085;
+
+}
+
+
+.temperature {
+
+    font-size: 60px;
+
+    font-weight: 800;
+
+}
+
+
+.temp-range {
+
+    margin:
+        18px 0;
+
+    color: #5f6878;
+
+}
+
+
+.temp-range span {
+
+    margin:
+        0 8px;
+
+}
+
+
+.stats {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            3,
+            1fr
+        );
+
+    gap: 10px;
+
+}
+
+
+.stat {
+
+    background: #f5f7fa;
+
+    border-radius: 16px;
+
+    padding: 16px;
+
+}
+
+
+.stat span,
+.stat strong {
+
+    display: block;
+
+}
+
+
+.stat span {
+
+    margin-bottom: 8px;
+
+}
+
+
+.stat strong {
+
+    font-size: 18px;
+
+}
+
+
+.outfit-card h2 {
+
+    margin:
+        0 0 10px;
+
+}
+
+
+.outfit-card p {
+
+    line-height: 1.6;
+
+}
+
+
+button {
+
+    border: 0;
+
+    border-radius: 13px;
+
+    padding:
+        13px 17px;
+
+    font-size: 15px;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+    background: #172033;
+
+    color: white;
+
+}
+
+
+button:disabled {
+
+    opacity: 0.6;
+
+    cursor: wait;
+
+}
+
+
+.recommend-text {
+
+    margin-top: 18px;
+
+    padding: 18px;
+
+    border-radius: 16px;
+
+    background: #f5f7fa;
+
+    white-space: pre-wrap;
+
+    line-height: 1.7;
+
+}
+
+
+footer {
+
+    margin-top: 30px;
+
+    text-align: center;
+
+    color: #8a93a3;
+
+    font-size: 12px;
+
+}
+
+
+@media (max-width: 600px) {
+
+    .container {
+
+        width:
+            min(
+                100% - 20px,
+                760px
+            );
+
+        padding-top: 25px;
+
+    }
+
+
+    h1 {
+
+        font-size: 32px;
+
+    }
+
+
+    .temperature {
+
+        font-size: 48px;
+
+    }
+
+
+    .stats {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+
+    .weather-card,
+    .outfit-card {
+
+        padding: 20px;
+
+        border-radius: 22px;
+
+    }
+
+}
